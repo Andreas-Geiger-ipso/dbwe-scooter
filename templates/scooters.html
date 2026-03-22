@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scooter Übersicht</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- DEBUGGING -->
+<!--<p>SESSION DEBUG: {{ session }}</p>-->
+
+<!-- HEADER -->
+<div class="header">
+    <div>
+        Eingeloggt als: <strong>{{ session.get("username") }}</strong>
+    </div>
+
+    <div>
+        <a href="/logout">
+            <button class="logout-btn">Logout</button>
+        </a>
+    </div>
+</div>
+
+<h2>Scooter Übersicht</h2>
+
+<!-- SCOOTER LISTE -->
+{% for s in scooters %}
+    <div class="scooter">
+
+        <p><strong>Scooter {{ s.id }}</strong></p>
+        <p>
+            Batterie:
+            <span class="{{ 'green' if s.battery > 50 else 'red' }}">
+                {{ s.battery }}%
+            </span>
+        </p>
+        <p>Standort: {{ s.location }}</p>
+
+        <!-- AKTIVE FAHRT -->
+        {% if active_booking and active_booking.scooter_id == s.id %}
+            
+            <p style="color: green;">
+                Fahrt läuft seit: {{ duration }} Minuten
+            </p>
+
+            <a href="/stop/{{ active_booking.id }}">
+                <button style="background-color:red;">Stop</button>
+            </a>
+
+        <!-- KEINE FAHRT -->
+        {% elif not active_booking %}
+            
+            <a href="/start/{{ s.id }}">
+                <button>Start</button>
+            </a>
+
+        <!-- ANDERER SCOOTER AKTIV -->
+        {% else %}
+            
+            <button disabled>Belegt</button>
+
+        {% endif %}
+
+        <!-- LETZTE FAHRT / PREIS -->
+        {% set finished = s.bookings | selectattr("end_time") | list %}
+
+        {% if finished %}
+            {% set last_booking = finished[-1] %}
+            <p style="margin-top:10px;">
+                Letzte Fahrt: <strong>{{ last_booking.price }} CHF</strong>
+            </p>
+        {% endif %}
+    </div>
+{% endfor %}
+
+</body>
+</html>
